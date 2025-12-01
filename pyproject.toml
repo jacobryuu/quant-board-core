@@ -1,0 +1,39 @@
+[project]
+name = "quant-board-core"
+version = "0.1.0"
+description = ""
+authors = [{ name = "jacob", email = "zero1024gg@gmail.com" }]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi (>=0.121.2,<0.122.0)",
+  "uvicorn (>=0.38.0,<0.39.0)",
+  "yfinance (>=0.2.66,<0.3.0)",
+  "pandas (>=2.3.3,<3.0.0)",
+  "sqlalchemy (>=2.0.44,<3.0.0)",
+  "psycopg2-binary (>=2.9.11,<3.0.0)",
+  "black (>=25.11.0,<26.0.0)",
+  "flake8 (>=7.3.0,<8.0.0)",
+  "pre-commit (>=4.4.0,<5.0.0)",
+]
+
+[tool.poetry.group.dev.dependencies]
+commitizen = { version = "^4.10.0", python = "<4.0" }
+pytest = "^9.0.1"
+httpx = "^0.28.1"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [{ include = "app" }]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.0"
+tag_format = "v$version"
+version_files = [
+    "pyproject.toml:version",
+    "app/__init__.py:__version__"
+]
