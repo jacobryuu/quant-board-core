@@ -1,0 +1,29 @@
+name: Auto Changelog
+
+on:
+  push:
+    branches:
+      - master
+      - release
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: orhun/git-cliff-action@v3
+        with:
+          config: .git-cliff.toml
+          output: CHANGELOG.md
+
+      - name: Commit Changelog
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add CHANGELOG.md
+          git commit -m "chore: update changelog" || echo "No changes"
+          git push
