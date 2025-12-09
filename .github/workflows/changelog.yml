@@ -15,10 +15,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: orhun/git-cliff-action@v3
-        with:
-          config: .git-cliff.toml
-          output: CHANGELOG.md
+      - name: Install git-cliff
+        run: |
+          curl -L https://github.com/orhun/git-cliff/releases/download/v2.6.1/git-cliff-2.6.1-x86_64-unknown-linux-gnu.tar.gz \
+          | tar xz
+          sudo mv git-cliff-2.6.1/git-cliff /usr/local/bin/git-cliff
+
+      - name: Generate Changelog
+        run: |
+          git cliff -c cliff.toml -o CHANGELOG.md
 
       - name: Commit Changelog
         run: |
