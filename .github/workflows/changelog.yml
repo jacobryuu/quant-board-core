@@ -3,7 +3,7 @@ name: Auto Changelog
 on:
   push:
     branches:
-      - master
+      - main
       - release
 
 jobs:
