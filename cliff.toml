@@ -1,0 +1,26 @@
+[changelog]
+header = "# Changelog\n\n"
+trim = true
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+commit_preprocessors = [
+  { pattern = "^feat", replace = "✨ feat" },
+  { pattern = "^fix", replace = "🐛 fix" },
+  { pattern = "^docs", replace = "📚 docs" },
+  { pattern = "^refactor", replace = "♻️ refactor" },
+  { pattern = "^perf", replace = "⚡ perf" },
+  { pattern = "^test", replace = "✅ test" },
+  { pattern = "^chore", replace = "🔧 chore" }
+]
+
+commit_parsers = [
+  { message = "^✨ feat", group = "🚀 Features" },
+  { message = "^🐛 fix", group = "🐛 Bug Fixes" },
+  { message = "^📚 docs", group = "📚 Documentation" },
+  { message = "^♻️ refactor", group = "♻️ Refactor" },
+  { message = "^⚡ perf", group = "⚡ Performance" },
+  { message = "^✅ test", group = "✅ Tests" },
+  { message = "^🔧 chore", group = "🔧 Chore" }
+]
