@@ -8,6 +8,7 @@ from sqlalchemy import (
     DateTime,
     func,
     BigInteger,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 from app.database.connection import Base  # Import Base from connection.py
@@ -47,6 +48,13 @@ class DailyStockPrice(Base):
     """
 
     __tablename__ = "daily_stock_prices"
+    __table_args__ = (
+        UniqueConstraint(
+            "stock_id",
+            "date",
+            name="ux_daily_stock_prices_stock_id_date",
+        ),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     stock_id = Column(Integer, ForeignKey("stocks.id"), nullable=False)
@@ -71,6 +79,14 @@ class FinancialStatement(Base):
     """
 
     __tablename__ = "financial_statements"
+    __table_args__ = (
+        UniqueConstraint(
+            "stock_id",
+            "period_type",
+            "period_end_date",
+            name="ux_financial_statements_stock_id_period_type_period_end_date",
+        ),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     stock_id = Column(Integer, ForeignKey("stocks.id"), nullable=False)

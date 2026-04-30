@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List, Optional, cast
 from datetime import date
 
 from app.database.connection import SessionLocal
@@ -93,9 +94,10 @@ async def fetch_and_save_from_yfinance(
             status_code=404, detail=f"Could not fetch data for ticker {ticker_symbol}"
         )
 
+    stock_id = cast(int, stock.id)
     db.refresh(stock)
-    stock.daily_prices = service.get_daily_prices(stock_id=stock.id)
-    stock.financial_statements = service.get_financial_statements(stock_id=stock.id)
+    stock.daily_prices = service.get_daily_prices(stock_id=stock_id)
+    stock.financial_statements = service.get_financial_statements(stock_id=stock_id)
     return stock
 
 
@@ -156,7 +158,7 @@ async def get_prices_for_stock(
     stock = service.get_stock_by_code(code)
     if not stock:
         raise HTTPException(status_code=404, detail=f"Stock with code {code} not found")
-    return service.get_daily_prices(stock.id, start_date, end_date)
+    return service.get_daily_prices(cast(int, stock.id), start_date, end_date)
 
 
 @router.post(
@@ -177,7 +179,17 @@ async def create_financial_statement_for_stock(
     stock = service.get_stock_by_code(code)
     if not stock:
         raise HTTPException(status_code=404, detail=f"Stock with code {code} not found")
-    return service.create_financial_statement(stock.id, statement)
+    try:
+        return service.create_financial_statement(cast(int, stock.id), statement)
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Financial statement already exists for "
+                f"{code} {statement.period_type} {statement.period_end_date}"
+            ),
+        ) from exc
 
 
 @router.get(
@@ -200,4 +212,6 @@ async def get_financial_statements_for_stock(
     stock = service.get_stock_by_code(code)
     if not stock:
         raise HTTPException(status_code=404, detail=f"Stock with code {code} not found")
-    return service.get_financial_statements(stock.id, period_type, period_end_date)
+    return service.get_financial_statements(
+        cast(int, stock.id), period_type, period_end_date
+    )

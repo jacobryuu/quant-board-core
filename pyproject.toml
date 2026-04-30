@@ -41,3 +41,7 @@ version_files = [
     "pyproject.toml:version",
     "app/__init__.py:__version__"
 ]
+
+[[tool.mypy.overrides]]
+module = ["pandas", "yfinance"]
+ignore_missing_imports = true

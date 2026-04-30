@@ -43,9 +43,14 @@ def db_session():
     """
     Fixture to handle test database creation and cleanup for each test function.
     """
-    Base.metadata.create_all(bind=engine)
-    yield TestingSessionLocal()
     Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+        Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture
@@ -205,6 +210,30 @@ def test_fetch_yfinance_data_new_stock(db_session: Session, mock_yfinance):
     assert annual.net_income == 2000
 
 
+def test_fetch_yfinance_data_does_not_duplicate_existing_records(
+    db_session: Session, mock_yfinance
+):
+    ticker = "TEST"
+    first_response = client.post(f"/stocks/yfinance/{ticker}")
+    second_response = client.post(f"/stocks/yfinance/{ticker}")
+
+    assert first_response.status_code == 200
+    assert second_response.status_code == 200
+
+    stock = db_session.query(stock_model.Stock).filter_by(code=ticker).one()
+    prices = (
+        db_session.query(stock_model.DailyStockPrice).filter_by(stock_id=stock.id).all()
+    )
+    financials = (
+        db_session.query(stock_model.FinancialStatement)
+        .filter_by(stock_id=stock.id)
+        .all()
+    )
+
+    assert len(prices) == 1
+    assert len(financials) == 2
+
+
 def test_trigger_bulk_fetch():
     with patch("app.routers.stocks.run_bulk_fetch_job") as mock_bulk_job:
         response = client.post("/stocks/yfinance/bulk", json={"tickers": ["T1", "T2"]})
@@ -236,3 +265,23 @@ def test_create_and_get_financial_statement(db_session: Session):
     assert response_get.status_code == 200
     assert len(response_get.json()) == 1
     assert response_get.json()[0]["net_income"] == 50
+
+
+def test_create_financial_statement_duplicate_returns_conflict(
+    db_session: Session,
+):
+    stock_res = client.post("/stocks/", json={"code": "FINDUPE", "name": "Financial"})
+    stock_code = stock_res.json()["code"]
+    fs_payload = {
+        "period_type": "annual",
+        "period_end_date": "2023-12-31",
+        "total_revenue": 500,
+    }
+
+    response_create = client.post(f"/stocks/{stock_code}/financials/", json=fs_payload)
+    response_duplicate = client.post(
+        f"/stocks/{stock_code}/financials/", json=fs_payload
+    )
+
+    assert response_create.status_code == 201
+    assert response_duplicate.status_code == 409

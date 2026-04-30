@@ -34,9 +34,10 @@
         created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
     );
 
-    -- daily_stock_pricesテーブルのdateとstock_idカラムにインデックスを作成
-    CREATE INDEX IF NOT EXISTS ix_daily_stock_prices_date ON daily_stock_prices (date);
-    CREATE INDEX IF NOT EXISTS ix_daily_stock_prices_stock_id ON daily_stock_prices (stock_id);
+     -- daily_stock_pricesテーブルのdateとstock_idカラムにインデックスを作成
+     CREATE INDEX IF NOT EXISTS ix_daily_stock_prices_date ON daily_stock_prices (date);
+     CREATE INDEX IF NOT EXISTS ix_daily_stock_prices_stock_id ON daily_stock_prices (stock_id);
+     CREATE UNIQUE INDEX IF NOT EXISTS ux_daily_stock_prices_stock_id_date ON daily_stock_prices (stock_id, date);
 
 
     -- 財務情報を保存するテーブル
